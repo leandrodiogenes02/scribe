@@ -176,7 +176,7 @@ class GenerateDocumentation extends Command
         $upgrader = Upgrader::ofConfigFile('config/scribe.php', __DIR__ . '/../../config/scribe.php')
             ->dontTouch(
                 'routes','example_languages', 'database_connections_to_transact', 'strategies' ,'laravel.middleware',
-                'postman.overrides', 'openapi.overrides'
+                'postman.overrides', 'openapi.overrides','auth.use_value'
             );
         $changes = $upgrader->dryRun();
         if (!empty($changes)) {
