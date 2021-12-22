@@ -25,6 +25,8 @@ class ExtractedEndpointData extends BaseDTO
      */
     public array $headers = [];
 
+    public array $postmanEvents = [];
+
     /**
      * @var array<string,\Knuckles\Camel\Extraction\Parameter>
      */

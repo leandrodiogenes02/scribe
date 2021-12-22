@@ -58,6 +58,9 @@ class Extractor
         'responseFields' => [
             \Knuckles\Scribe\Extracting\Strategies\ResponseFields\GetFromResponseFieldTag::class,
         ],
+        'postmanEvents' => [
+
+        ],
     ];
 
     public function __construct(DocumentationConfig $config = null)
@@ -96,6 +99,8 @@ class Extractor
 
         $this->fetchQueryParameters($endpointData, $routeRules);
         $endpointData->cleanQueryParameters = self::cleanParams($endpointData->queryParameters);
+
+        $this->fetchPostmanEvents($endpointData,$routeRules);
 
         $this->fetchRequestHeaders($endpointData, $routeRules);
 
@@ -189,6 +194,17 @@ class Extractor
         $this->iterateThroughStrategies('responseFields', $endpointData, $rulesToApply, function ($results) use ($endpointData) {
             foreach ($results as $key => $item) {
                 $endpointData->responseFields[$key] = ResponseField::create($item);
+            }
+        });
+    }
+
+    protected function fetchPostmanEvents(ExtractedEndpointData $endpointData, array $rulesToApply): void
+    {
+        $this->iterateThroughStrategies('postmanEvents', $endpointData, $rulesToApply, function ($results) use ($endpointData) {
+            foreach ($results as $key => $item) {
+                if ($item) {
+                    $endpointData->postmanEvents[] = $item;
+                }
             }
         });
     }

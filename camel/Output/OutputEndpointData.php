@@ -19,6 +19,8 @@ class OutputEndpointData extends BaseDTO
      */
     public array $httpMethods;
 
+    public array $postmanEvents = [];
+
     public string $uri;
 
     public Metadata $metadata;

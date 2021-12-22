@@ -360,6 +360,9 @@ INTRO
         'responseFields' => [
             Strategies\ResponseFields\GetFromResponseFieldTag::class,
         ],
+        'postmanEvents' => [
+            \Knuckles\Scribe\Extracting\Strategies\Postman\GetPostmanEventsStrategy::class
+        ],
     ],
 
     'fractal' => [
