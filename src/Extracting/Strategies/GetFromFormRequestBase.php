@@ -29,6 +29,10 @@ class GetFromFormRequestBase extends Strategy
             return [];
         }
 
+        if($formRequestReflectionClass->getName() === 'Lorisleiva\Actions\ActionRequest'){
+            return [];
+        }
+
         if (!$this->isFormRequestMeantForThisStrategy($formRequestReflectionClass)) {
             return [];
         }
