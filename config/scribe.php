@@ -228,9 +228,7 @@ return [
          * This will NOT be included in the generated documentation.
          * If this value is empty, Scribe will use a random value.
          */
-        'use_value'   => [
-            'api' => '',
-        ],
+        'use_value'   => '',
 
         /*
          * Placeholder your users will see for the auth parameter in the example requests.

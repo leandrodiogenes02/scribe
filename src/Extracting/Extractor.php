@@ -388,7 +388,7 @@ class Extractor
         $valueToDisplay = $this->config->get('auth.placeholder');
 
         $guard      = $endpointData->metadata->guard;
-        $valueToUse = $this->config->get("auth.use_value.{$guard}", null);
+        $valueToUse = $this->config->get("auth.use_value", null);
 
         if(!$valueToUse and $guard) {
             if(config("auth.guards.{$guard}")){
@@ -397,7 +397,7 @@ class Extractor
 
                 if(class_exists($model) and $user  = $model::first()) {
                     $valueToUse = $user->createToken('scribe')->accessToken;
-                    Config::set('scribe.auth.use_value.' . $guard, $valueToUse);
+                    Config::set('scribe.auth.use_value', $valueToUse);
                 }
             }
         }
