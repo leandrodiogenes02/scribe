@@ -201,7 +201,7 @@ class Extractor
     protected function fetchPostmanEvents(ExtractedEndpointData $endpointData, array $rulesToApply): void
     {
         $this->iterateThroughStrategies('postmanEvents', $endpointData, $rulesToApply, function ($results) use ($endpointData) {
-            foreach ($results as $key => $item) {
+            foreach ($results as $item) {
                 if ($item) {
                     $endpointData->postmanEvents[] = $item;
                 }

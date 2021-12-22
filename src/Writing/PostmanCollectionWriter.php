@@ -193,13 +193,8 @@ class PostmanCollectionWriter
 
     protected function resolveHeadersForEndpoint(OutputEndpointData $endpointData): array
     {
-        [$where, $authParam] = $this->getAuthParamToExclude();
-
         $headers = collect($endpointData->headers);
-        if ($where === 'header') {
-            unset($headers[$authParam]);
-        }
-
+        $guard   = $endpointData->metadata->guard;
         $headers = $headers
             ->union([
                 'Accept' => 'application/json',
@@ -208,6 +203,9 @@ class PostmanCollectionWriter
                 // Allow users to write ['header' => '@{{value}}'] in config
                 // and have it rendered properly as {{value}} in the Postman collection.
                 $value = str_replace('@{{', '{{', $value);
+                if(!empty($guard) and $header === "Authorization") {
+                    $value = "{{token_$guard}}";
+                }
                 return [
                     'key' => $header,
                     'value' => $value,

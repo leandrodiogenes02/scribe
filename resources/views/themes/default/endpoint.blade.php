@@ -5,7 +5,7 @@
 <h2 id="{!! Str::slug($group['name']) !!}-{!! $endpoint->endpointId() !!}">{{ $endpoint->metadata->title ?: ($endpoint->httpMethods[0]." ".$endpoint->uri)}}</h2>
 
 <p>
-@component('scribe::components.badges.auth', ['authenticated' => $endpoint->metadata->authenticated])
+@component('scribe::components.badges.auth', ['authenticated' => $endpoint->metadata->authenticated,'guard' => $endpoint->metadata->guard])
 @endcomponent
 </p>
 
