@@ -44,9 +44,10 @@ trait ParamHelpers
 
         $fakeFactories = [
             'integer' => fn() => $size ?: $faker->numberBetween(1, 20),
-            'number' => fn() => $size ?: $faker->randomFloat(),
+            'number' => fn() => $size ?: $faker->randomFloat(2,20,100),
             'boolean' => fn() => $faker->boolean(),
             'string' => fn() => $size ? $faker->lexify(str_repeat("?", $size)) : $faker->word,
+            'uuid' => fn() => $faker->uuid,
             'object' => fn() => [],
             'file' => fn() => UploadedFile::fake()->create('test.jpg')->size($size ?: 10),
         ];
