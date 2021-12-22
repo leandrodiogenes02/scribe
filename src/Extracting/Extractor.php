@@ -2,6 +2,7 @@
 
 namespace Knuckles\Scribe\Extracting;
 
+use Illuminate\Support\Facades\Config;
 use Knuckles\Camel\Extraction\ExtractedEndpointData;
 use Knuckles\Camel\Extraction\Metadata;
 use Knuckles\Camel\Extraction\Parameter;
@@ -14,7 +15,9 @@ use Illuminate\Support\Str;
 use Knuckles\Camel\Extraction\ResponseField;
 use Knuckles\Camel\Output\OutputEndpointData;
 use Knuckles\Scribe\Extracting\Strategies\Strategy;
+use Knuckles\Scribe\Tools\AuthConfigHelper;
 use Knuckles\Scribe\Tools\DocumentationConfig;
+use Spatie\DataTransferObject\DataTransferObject;
 
 class Extractor
 {
@@ -354,20 +357,34 @@ class Extractor
     public function addAuthField(ExtractedEndpointData $endpointData): void
     {
         $isApiAuthed = $this->config->get('auth.enabled', false);
-        if (!$isApiAuthed || !$endpointData->metadata->authenticated) {
+        if(!$isApiAuthed || !$endpointData->metadata->authenticated) {
             return;
         }
 
-        $strategy = $this->config->get('auth.in');
+        $strategy      = $this->config->get('auth.in');
         $parameterName = $this->config->get('auth.name');
 
         $faker = Factory::create();
-        if ($this->config->get('faker_seed')) {
+        if($this->config->get('faker_seed')) {
             $faker->seed($this->config->get('faker_seed'));
         }
-        $token = $faker->shuffleString('abcdefghkvaZVDPE1864563');
-        $valueToUse = $this->config->get('auth.use_value');
+        $token          = $faker->shuffleString('abcdefghkvaZVDPE1864563');
         $valueToDisplay = $this->config->get('auth.placeholder');
+
+        $guard      = $endpointData->metadata->guard;
+        $valueToUse = $this->config->get("auth.use_value.{$guard}", null);
+
+        if(!$valueToUse and $guard) {
+            if(config("auth.guards.{$guard}")){
+
+                $model = AuthConfigHelper::getProviderModel(config("auth.guards.{$guard}.provider"));
+
+                if(class_exists($model) and $user  = $model::first()) {
+                    $valueToUse = $user->createToken('scribe')->accessToken;
+                    Config::set('scribe.auth.use_value.' . $guard, $valueToUse);
+                }
+            }
+        }
 
         switch ($strategy) {
             case 'query':

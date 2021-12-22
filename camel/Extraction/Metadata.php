@@ -8,6 +8,8 @@ class Metadata extends BaseDTO
 {
     public ?string $groupName;
 
+    public ?string $guard;
+
     /**
      * Name of the group that this group should be placed just before.
      * Only used in custom endpoints, if the endpoint's `groupName` doesn't already exist.

@@ -2,43 +2,59 @@
 
 namespace Knuckles\Scribe\Extracting\Strategies\Metadata;
 
+use Illuminate\Support\Str;
 use Knuckles\Camel\Extraction\ExtractedEndpointData;
 use Knuckles\Scribe\Extracting\RouteDocBlocker;
 use Knuckles\Scribe\Extracting\Strategies\Strategy;
 use Mpociot\Reflection\DocBlock;
 
-class GetFromDocBlocks extends Strategy
-{
-    public function __invoke(ExtractedEndpointData $endpointData, array $routeRules): array
-    {
-        $docBlocks = RouteDocBlocker::getDocBlocksFromRoute($endpointData->route);
+class GetFromDocBlocks extends Strategy {
+    public function __invoke(ExtractedEndpointData $endpointData, array $routeRules): array {
+        $docBlocks      = RouteDocBlocker::getDocBlocksFromRoute($endpointData->route);
         $methodDocBlock = $docBlocks['method'];
-        $classDocBlock = $docBlocks['class'];
+        $classDocBlock  = $docBlocks['class'];
 
-        return $this->getMetadataFromDocBlock($methodDocBlock, $classDocBlock);
+        $middlewares = $endpointData->route->getAction()['middleware'] ?? [];
+
+        return $this->getMetadataFromDocBlock($methodDocBlock, $classDocBlock, $middlewares);
     }
 
-    public function getMetadataFromDocBlock(DocBlock $methodDocBlock, DocBlock $classDocBlock): array
-    {
+    public function getMetadataFromDocBlock(DocBlock $methodDocBlock, DocBlock $classDocBlock, array $middlewares = []): array {
         [$routeGroupName, $routeGroupDescription, $routeTitle] = $this->getRouteGroupDescriptionAndTitle($methodDocBlock, $classDocBlock);
 
+        if(is_string($middlewares)) {
+            $middlewares = [$middlewares];
+        }
+
+        $multiauthMiddleware = collect($middlewares)->filter(function($middleware) {
+            if(Str::startsWith($middleware, 'auth:')) {
+                return true;
+            }
+            return false;
+        })->first();
+
+        $guard               = null;
+        if(!empty($multiauthMiddleware)) {
+            $guard = str_replace("auth:", "", $multiauthMiddleware);
+        }
+
         return [
-            'groupName' => $routeGroupName,
+            'guard'            => $guard,
+            'groupName'        => $routeGroupName,
             'groupDescription' => $routeGroupDescription,
-            'title' => $routeTitle ?: $methodDocBlock->getShortDescription(),
-            'description' => $methodDocBlock->getLongDescription()->getContents(),
-            'authenticated' => $this->getAuthStatusFromDocBlock($methodDocBlock, $classDocBlock),
+            'title'            => $routeTitle ?: $methodDocBlock->getShortDescription(),
+            'description'      => $methodDocBlock->getLongDescription()->getContents(),
+            'authenticated'    => !empty($multiauthMiddleware) OR $this->getAuthStatusFromDocBlock($methodDocBlock, $classDocBlock),
         ];
     }
 
-    protected function getAuthStatusFromDocBlock(DocBlock $methodDocBlock, DocBlock $classDocBlock = null): bool
-    {
-        foreach ($methodDocBlock->getTags() as $tag) {
-            if (strtolower($tag->getName()) === 'authenticated') {
+    protected function getAuthStatusFromDocBlock(DocBlock $methodDocBlock, DocBlock $classDocBlock = null): bool {
+        foreach($methodDocBlock->getTags() as $tag) {
+            if(strtolower($tag->getName()) === 'authenticated') {
                 return true;
             }
 
-            if (strtolower($tag->getName()) === 'unauthenticated') {
+            if(strtolower($tag->getName()) === 'unauthenticated') {
                 return false;
             }
         }
@@ -54,14 +70,13 @@ class GetFromDocBlocks extends Strategy
      *
      * @return array The route group name, the group description, and the route title
      */
-    protected function getRouteGroupDescriptionAndTitle(DocBlock $methodDocBlock, DocBlock $controllerDocBlock)
-    {
+    protected function getRouteGroupDescriptionAndTitle(DocBlock $methodDocBlock, DocBlock $controllerDocBlock) {
         // @group tag on the method overrides that on the controller
-        if (!empty($methodDocBlock->getTags())) {
-            foreach ($methodDocBlock->getTags() as $tag) {
-                if ($tag->getName() === 'group') {
-                    $routeGroupParts = explode("\n", trim($tag->getContent()));
-                    $routeGroupName = array_shift($routeGroupParts);
+        if(!empty($methodDocBlock->getTags())) {
+            foreach($methodDocBlock->getTags() as $tag) {
+                if($tag->getName() === 'group') {
+                    $routeGroupParts       = explode("\n", trim($tag->getContent()));
+                    $routeGroupName        = array_shift($routeGroupParts);
                     $routeGroupDescription = trim(implode("\n", $routeGroupParts));
 
                     // If the route has no title (the methodDocBlock's "short description"),
@@ -80,7 +95,7 @@ class GetFromDocBlocks extends Strategy
 
                     // BTW, this is a spaghetti way of doing this.
                     // It shall be refactored soon. Deus vult!💪
-                    if (empty($methodDocBlock->getShortDescription())) {
+                    if(empty($methodDocBlock->getShortDescription())) {
                         return [$routeGroupName, '', $routeGroupDescription];
                     }
 
@@ -89,10 +104,10 @@ class GetFromDocBlocks extends Strategy
             }
         }
 
-        foreach ($controllerDocBlock->getTags() as $tag) {
-            if ($tag->getName() === 'group') {
-                $routeGroupParts = explode("\n", trim($tag->getContent()));
-                $routeGroupName = array_shift($routeGroupParts);
+        foreach($controllerDocBlock->getTags() as $tag) {
+            if($tag->getName() === 'group') {
+                $routeGroupParts       = explode("\n", trim($tag->getContent()));
+                $routeGroupName        = array_shift($routeGroupParts);
                 $routeGroupDescription = implode("\n", $routeGroupParts);
 
                 return [$routeGroupName, $routeGroupDescription, $methodDocBlock->getShortDescription()];
