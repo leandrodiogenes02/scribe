@@ -3,6 +3,43 @@
     /** @var  Knuckles\Camel\Output\OutputEndpointData $endpoint */
 @endphp
 ```javascript
+
+
+
+//------------------------------------
+//------------ ApiRequest ------------
+//------------------------------------
+
+@if(count($endpoint->cleanQueryParameters))
+    let params = {!! \Knuckles\Scribe\Tools\WritingUtils::printQueryParamsAsKeyValue($endpoint->cleanQueryParameters, "\"", ":", 4, "{}")
+    !!};
+@endif
+@if(count($endpoint->cleanBodyParameters))
+    let params = {!! json_encode($endpoint->cleanBodyParameters, JSON_PRETTY_PRINT)
+    !!}
+@endif
+
+new ApiRequest({
+url: "{{ rtrim($baseUrl, '/') }}/{{ ltrim($endpoint->boundUri, '/') }}",
+method: "{{$endpoint->httpMethods[0]}}",
+@if($endpoint->httpMethods[0] == "PUT")
+    raw: true,
+@endif
+success: function(response){ }
+})
+@foreach($endpoint->fileParameters as $parameter => $file)
+    .addParameter('{!! $parameter !!}', document.querySelector('input[name="{!! $parameter !!}"]').files[0]);
+@endforeach
+@if(count($endpoint->cleanQueryParameters) or count($endpoint->cleanBodyParameters))
+    .addParameters(params)
+@endif
+.execute();
+
+
+//-----------------------------------------
+//------------ JAVASCRIPT puro ------------
+//-----------------------------------------
+
 const url = new URL(
     "{{ rtrim($baseUrl, '/') }}/{{ ltrim($endpoint->boundUri, '/') }}"
 );

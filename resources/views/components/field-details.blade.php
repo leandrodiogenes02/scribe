@@ -59,4 +59,4 @@
     @endif
 @endif
 <br>
-{!! Parsedown::instance()->text($description) !!}
+<small>{!! Parsedown::instance()->text($description) !!}</small>

@@ -22,6 +22,11 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jets/0.14.1/jets.min.js"></script>
 
+    <style>
+        .content dd, .content dt, .content li, .content p{
+            line-height: 1 !important;
+        }
+    </style>
 @if(isset($metadata['example_languages']))
     <style id="language-style">
         /* starts out as display none and is replaced with js later  */
